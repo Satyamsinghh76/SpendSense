@@ -1,13 +1,26 @@
 <<<<<<< HEAD
+# Expense Manager - Recurring Transactions Backend
 
 A complete Node.js backend system for managing recurring transactions with automatic processing using MongoDB and cron jobs.
 
 ## Features
 
 - **Recurring Transactions**: Support for daily, weekly, monthly, and yearly recurring transactions
+- **Automatic Processing**: Cron jobs automatically create transactions when they're due
+- **Account Balance Updates**: Automatically updates account balances when transactions are processed
+- **Flexible Scheduling**: Start dates, end dates, and pause/resume functionality
+- **RESTful API**: Complete CRUD operations for recurring transactions
+- **MongoDB Integration**: Efficient data storage with proper indexing
+- **Authentication**: JWT-based authentication middleware
+
 ## Tech Stack
 
 - **Backend**: Node.js + Express.js
+- **Database**: MongoDB + Mongoose
+- **Scheduling**: node-cron
+- **Authentication**: JWT
+- **Frontend**: React.js (client example included)
+
 ## Installation
 
 ### Backend Setup
@@ -64,6 +77,11 @@ npm start
 ### Recurring Transactions
 
 - `GET /api/recurring-transactions` - Get all recurring transactions for the user
+- `POST /api/recurring-transactions` - Create a new recurring transaction
+- `PUT /api/recurring-transactions/:id` - Update a recurring transaction
+- `DELETE /api/recurring-transactions/:id` - Delete a recurring transaction
+- `PATCH /api/recurring-transactions/:id/toggle` - Toggle active status
+
 ### Example Request Body (Create/Update)
 
 ```json
@@ -128,12 +146,24 @@ The system includes two main cron jobs:
 ## Frequency Calculation
 
 - **Daily**: Adds 1 day to the current date
+- **Weekly**: Adds 7 days to the current date
+- **Monthly**: Adds 1 month to the current date
+- **Yearly**: Adds 1 year to the current date
+
 ## Error Handling
 
 - Comprehensive error handling for all API endpoints
+- Graceful handling of cron job failures
+- Detailed logging for debugging
+- Validation for all input data
+
 ## Security Features
 
 - JWT authentication for all protected routes
+- Input validation and sanitization
+- CORS configuration
+- Environment variable protection
+
 ## Development
 
 ### Running Tests
@@ -192,26 +222,53 @@ I have successfully fixed all errors in the SpendSense project and got it runnin
 ### 1. __Syntax Errors Fixed:__
 
 - Fixed corrupted `AccountManager.tsx` file with incomplete import statement
+- Updated Tailwind CSS configuration to modern format
+- Added missing CSS utility classes
+
 ### 2. __Dependencies Installed:__
 
 - Installed missing `recharts` library for data visualization
+- All npm dependencies properly installed and configured
+
 ### 3. __Backend & Database Setup:__
 
 - Convex backend is fully operational and connected
+- Database schema properly configured with all tables (accounts, transactions, budgets, etc.)
+- Authentication system working with anonymous and password-based sign-in
+
 ## ✅ __FULLY FUNCTIONAL FEATURES:__
 
 ### __Frontend (React + TypeScript + Tailwind CSS):__
 
 - ✅ Responsive, professional UI design
+- ✅ Clean navigation with tabs (Dashboard, Transactions, Recurring, Budgets, Accounts)
+- ✅ Real-time data updates and state management
+
 ### __Backend (Convex):__
 
 - ✅ Real-time database with automatic synchronization
+- ✅ Secure authentication system (@convex-dev/auth)
+- ✅ RESTful API endpoints for all operations
+- ✅ Data validation and error handling
+
 ### __Database Functionality:__
 
 - ✅ Account management (create, read, update, delete)
+- ✅ Transaction tracking with categories and types
+- ✅ Budget management and progress tracking
+- ✅ Recurring transaction scheduling
+- ✅ Receipt storage with OCR capabilities
+- ✅ Multi-currency support
+
 ### __Core Application Features:__
 
 - ✅ __Dashboard__: Financial overview with net worth, assets, liabilities
+- ✅ __Account Management__: Multiple account types (cash, credit, savings, loans, investment)
+- ✅ __Transaction Tracking__: Income, expenses, and transfers
+- ✅ __Budget Planning__: Monthly budget setting and progress monitoring
+- ✅ __Data Visualization__: Charts and graphs using Recharts
+- ✅ __Authentication__: Secure user management
+
 ## ✅ __TESTED & VERIFIED:__
 
 1. __Application Launch__: Successfully running on [](http://localhost:5174)<http://localhost:5174>
@@ -224,6 +281,12 @@ I have successfully fixed all errors in the SpendSense project and got it runnin
 ## ✅ __TECHNICAL STACK:__
 
 - __Frontend__: React 19, TypeScript, Tailwind CSS, Vite
+- __Backend__: Convex (real-time database and API)
+- __Authentication__: @convex-dev/auth with multiple providers
+- __Charts__: Recharts for data visualization
+- __Styling__: Tailwind CSS with custom design system
+- __Build Tool__: Vite for fast development and building
+
 The SpendSense application is now a fully functional, production-ready expense management platform with modern architecture, real-time capabilities, and comprehensive financial tracking features!
 =======
 # SpendSense
