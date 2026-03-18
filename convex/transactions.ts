@@ -18,10 +18,16 @@ export const list = query({
     let query = ctx.db.query("transactions").withIndex("by_user", (q) => q.eq("userId", userId));
 
     if (args.accountId) {
+      // Verify the account belongs to this user before filtering by it
+      const account = await ctx.db.get(args.accountId);
+      if (!account || account.userId !== userId) {
+        throw new Error("Account not found or unauthorized");
+      }
       query = ctx.db.query("transactions").withIndex("by_account", (q) => q.eq("accountId", args.accountId!));
     }
 
-    let transactions = await query.order("desc").take(args.limit || 50);
+    let transactions = (await query.order("desc").take(args.limit || 50))
+      .filter(t => t.userId === userId);
 
     // Apply additional filters
     if (args.category) {
@@ -89,10 +95,28 @@ export const create = mutation({
     });
 
     // Update account balance
-    const balanceChange = args.type === "expense" ? -args.amount : args.amount;
-    await ctx.db.patch(args.accountId, {
-      balance: account.balance + balanceChange,
-    });
+    if (args.type === "transfer") {
+      // For transfers: subtract from debit (source) account, add to credit (destination) account
+      if (args.debitAccount && args.creditAccount) {
+        const debitAcc = await ctx.db.get(args.debitAccount);
+        const creditAcc = await ctx.db.get(args.creditAccount);
+        if (debitAcc) {
+          await ctx.db.patch(args.debitAccount, {
+            balance: debitAcc.balance - args.amount,
+          });
+        }
+        if (creditAcc) {
+          await ctx.db.patch(args.creditAccount, {
+            balance: creditAcc.balance + args.amount,
+          });
+        }
+      }
+    } else {
+      const balanceChange = args.type === "expense" ? -args.amount : args.amount;
+      await ctx.db.patch(args.accountId, {
+        balance: account.balance + balanceChange,
+      });
+    }
 
     return transactionId;
   },
@@ -126,15 +150,36 @@ export const update = mutation({
 
     // If amount changed, update account balance
     if (args.amount !== undefined && args.amount !== transaction.amount) {
-      const account = await ctx.db.get(transaction.accountId);
-      if (account) {
-        const oldBalanceChange = transaction.type === "expense" ? -transaction.amount : transaction.amount;
-        const newBalanceChange = transaction.type === "expense" ? -args.amount : args.amount;
-        const balanceDiff = newBalanceChange - oldBalanceChange;
-        
-        await ctx.db.patch(transaction.accountId, {
-          balance: account.balance + balanceDiff,
-        });
+      if (transaction.type === "transfer") {
+        // For transfers: adjust both debit and credit accounts
+        const amountDiff = args.amount - transaction.amount;
+        if (transaction.debitAccount) {
+          const debitAcc = await ctx.db.get(transaction.debitAccount);
+          if (debitAcc) {
+            await ctx.db.patch(transaction.debitAccount, {
+              balance: debitAcc.balance - amountDiff,
+            });
+          }
+        }
+        if (transaction.creditAccount) {
+          const creditAcc = await ctx.db.get(transaction.creditAccount);
+          if (creditAcc) {
+            await ctx.db.patch(transaction.creditAccount, {
+              balance: creditAcc.balance + amountDiff,
+            });
+          }
+        }
+      } else {
+        const account = await ctx.db.get(transaction.accountId);
+        if (account) {
+          const oldBalanceChange = transaction.type === "expense" ? -transaction.amount : transaction.amount;
+          const newBalanceChange = transaction.type === "expense" ? -args.amount : args.amount;
+          const balanceDiff = newBalanceChange - oldBalanceChange;
+
+          await ctx.db.patch(transaction.accountId, {
+            balance: account.balance + balanceDiff,
+          });
+        }
       }
     }
   },
@@ -153,12 +198,32 @@ export const remove = mutation({
     }
 
     // Revert account balance
-    const account = await ctx.db.get(transaction.accountId);
-    if (account) {
-      const balanceChange = transaction.type === "expense" ? transaction.amount : -transaction.amount;
-      await ctx.db.patch(transaction.accountId, {
-        balance: account.balance + balanceChange,
-      });
+    if (transaction.type === "transfer") {
+      // For transfers: reverse the debit/credit operations
+      if (transaction.debitAccount) {
+        const debitAcc = await ctx.db.get(transaction.debitAccount);
+        if (debitAcc) {
+          await ctx.db.patch(transaction.debitAccount, {
+            balance: debitAcc.balance + transaction.amount,
+          });
+        }
+      }
+      if (transaction.creditAccount) {
+        const creditAcc = await ctx.db.get(transaction.creditAccount);
+        if (creditAcc) {
+          await ctx.db.patch(transaction.creditAccount, {
+            balance: creditAcc.balance - transaction.amount,
+          });
+        }
+      }
+    } else {
+      const account = await ctx.db.get(transaction.accountId);
+      if (account) {
+        const balanceChange = transaction.type === "expense" ? transaction.amount : -transaction.amount;
+        await ctx.db.patch(transaction.accountId, {
+          balance: account.balance + balanceChange,
+        });
+      }
     }
 
     await ctx.db.delete(args.id);

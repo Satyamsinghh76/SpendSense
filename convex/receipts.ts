@@ -1,7 +1,7 @@
-import { action, mutation, query } from "./_generated/server";
+import { internalAction, internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { api } from "./_generated/api";
+import { internal } from "./_generated/api";
 
 // Generate upload URL for receipt image
 export const generateUploadUrl = mutation({
@@ -32,14 +32,14 @@ export const create = mutation({
     });
 
     // Schedule OCR processing
-    await ctx.scheduler.runAfter(0, api.receipts.processOCR, { receiptId });
+    await ctx.scheduler.runAfter(0, internal.receipts.processOCR, { receiptId });
 
     return receiptId;
   },
 });
 
-// Process OCR for receipt (scheduled action)
-export const processOCR = action({
+// Process OCR for receipt (scheduled internal action)
+export const processOCR = internalAction({
   args: { receiptId: v.id("receipts") },
   handler: async (ctx, args) => {
     // In a real implementation, you would:
@@ -56,15 +56,15 @@ export const processOCR = action({
       rawText: "SAMPLE STORE\n123 Main St\nDate: " + new Date().toLocaleDateString() + "\nTotal: $25.99",
     };
 
-    await ctx.runMutation(api.receipts.updateOCRData, {
+    await ctx.runMutation(internal.receipts.updateOCRData, {
       receiptId: args.receiptId,
       ocrData: mockOCRData,
     });
   },
 });
 
-// Update receipt with OCR data
-export const updateOCRData = mutation({
+// Update receipt with OCR data (internal - called by processOCR)
+export const updateOCRData = internalMutation({
   args: {
     receiptId: v.id("receipts"),
     ocrData: v.object({

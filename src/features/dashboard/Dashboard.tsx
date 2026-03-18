@@ -1,12 +1,11 @@
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useBalanceSummary, useExpenseBreakdown, useDailySpending } from "@/lib/data-hooks";
 import ExpenseChart from "./ExpenseChart";
-import BudgetProgress from "./BudgetProgress";
+import BudgetProgress from "@/features/budgets/BudgetProgress";
 import RecentTransactions from "./RecentTransactions";
 import AccountSummary from "./AccountSummary";
 
 export default function Dashboard() {
-  const balanceSummary = useQuery(api.accounts.getBalanceSummary);
+  const balanceSummary = useBalanceSummary();
   const currentMonth = new Date().toISOString().slice(0, 7); // "2024-01" format
   
   // Get date range for current month
@@ -14,15 +13,9 @@ export default function Dashboard() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).getTime();
   
-  const expenseBreakdown = useQuery(api.transactions.getExpenseBreakdown, {
-    startDate: startOfMonth,
-    endDate: endOfMonth,
-  });
+  const expenseBreakdown = useExpenseBreakdown({ startDate: startOfMonth, endDate: endOfMonth });
   
-  const dailySpending = useQuery(api.transactions.getDailySpending, {
-    startDate: startOfMonth,
-    endDate: endOfMonth,
-  });
+  const dailySpending = useDailySpending({ startDate: startOfMonth, endDate: endOfMonth });
 
   if (balanceSummary === undefined || expenseBreakdown === undefined || dailySpending === undefined) {
     return (

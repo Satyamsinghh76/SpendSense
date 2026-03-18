@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useTransactionsList, useCategoriesList, useRemoveTransaction } from "@/lib/data-hooks";
 import TransactionForm from "./TransactionForm";
 import { toast } from "sonner";
 
@@ -13,15 +12,15 @@ export default function TransactionList() {
     endDate: "",
   });
 
-  const transactions = useQuery(api.transactions.list, {
+  const transactions = useTransactionsList({
     category: filters.category || undefined,
     startDate: filters.startDate ? new Date(filters.startDate).getTime() : undefined,
     endDate: filters.endDate ? new Date(filters.endDate).getTime() : undefined,
     limit: 50,
   });
 
-  const categories = useQuery(api.categories.list);
-  const deleteTransaction = useMutation(api.transactions.remove);
+  const categories = useCategoriesList();
+  const deleteTransaction = useRemoveTransaction();
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this transaction?")) {

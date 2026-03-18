@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useAccountsList, useCreateAccount, useUpdateAccount, useRemoveAccount } from "@/lib/data-hooks";
+import type { Id } from "@convex/dataModel";
 
 const accountTypes = [
   { value: "cash", label: "Cash", icon: "💵" },
@@ -26,10 +26,10 @@ export default function AccountManager() {
     color: accountColors[0],
   });
 
-  const accounts = useQuery(api.accounts.list);
-  const createAccount = useMutation(api.accounts.create);
-  const updateAccount = useMutation(api.accounts.update);
-  const deleteAccount = useMutation(api.accounts.remove);
+  const accounts = useAccountsList();
+  const createAccount = useCreateAccount();
+  const updateAccount = useUpdateAccount();
+  const deleteAccount = useRemoveAccount();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +74,7 @@ export default function AccountManager() {
     setShowForm(true);
   };
 
-  const handleDelete = async (accountId: string) => {
+  const handleDelete = async (accountId: any) => {
     if (confirm("Are you sure you want to delete this account?")) {
       try {
         await deleteAccount({ id: accountId });

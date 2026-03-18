@@ -1,5 +1,4 @@
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useAccountsList } from "@/lib/data-hooks";
 
 const accountTypeColors = {
   cash: 'bg-green-100 text-green-800',
@@ -18,7 +17,7 @@ const accountTypeIcons = {
 };
 
 export default function AccountSummary() {
-  const accounts = useQuery(api.accounts.list);
+  const accounts = useAccountsList();
 
   if (accounts === undefined) {
     return (

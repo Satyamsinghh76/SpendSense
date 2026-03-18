@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useRecurringTransactionsList, useRemoveRecurringTransaction, useUpdateRecurringTransaction } from "@/lib/data-hooks";
 import RecurringTransactionForm from "./RecurringTransactionForm";
 import { toast } from "sonner";
 
@@ -8,9 +7,9 @@ export default function RecurringTransactionList() {
   const [showForm, setShowForm] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
 
-  const recurringTransactions = useQuery(api.recurringTransactions.list);
-  const deleteRecurringTransaction = useMutation(api.recurringTransactions.remove);
-  const updateRecurringTransaction = useMutation(api.recurringTransactions.update);
+  const recurringTransactions = useRecurringTransactionsList();
+  const deleteRecurringTransaction = useRemoveRecurringTransaction();
+  const updateRecurringTransaction = useUpdateRecurringTransaction();
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this recurring transaction?")) {

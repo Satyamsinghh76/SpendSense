@@ -81,6 +81,26 @@ export const remove = mutation({
       throw new Error("Account not found or unauthorized");
     }
 
+    // Clean up transactions referencing this account
+    const transactions = await ctx.db
+      .query("transactions")
+      .withIndex("by_account", (q) => q.eq("accountId", args.id))
+      .collect();
+    for (const transaction of transactions) {
+      await ctx.db.delete(transaction._id);
+    }
+
+    // Clean up recurring transactions referencing this account
+    const recurringTransactions = await ctx.db
+      .query("recurringTransactions")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    for (const rt of recurringTransactions) {
+      if (rt.accountId === args.id) {
+        await ctx.db.delete(rt._id);
+      }
+    }
+
     await ctx.db.delete(args.id);
   },
 });

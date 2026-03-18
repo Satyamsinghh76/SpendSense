@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useBudgetsList, useBudgetComparison, useCategoriesList, useUpsertBudget, useRemoveBudget } from "@/lib/data-hooks";
 import { toast } from "sonner";
 
 export default function BudgetSettings() {
@@ -15,11 +14,11 @@ export default function BudgetSettings() {
     amount: "",
   });
 
-  const budgets = useQuery(api.budgets.list, { period: selectedPeriod });
-  const budgetComparison = useQuery(api.budgets.getBudgetComparison, { period: selectedPeriod });
-  const categories = useQuery(api.categories.list);
-  const upsertBudget = useMutation(api.budgets.upsert);
-  const deleteBudget = useMutation(api.budgets.remove);
+  const budgets = useBudgetsList({ period: selectedPeriod });
+  const budgetComparison = useBudgetComparison({ period: selectedPeriod });
+  const categories = useCategoriesList();
+  const upsertBudget = useUpsertBudget();
+  const deleteBudget = useRemoveBudget();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

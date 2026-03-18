@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useAccountsList, useCategoriesList, useCreateRecurringTransaction, useUpdateRecurringTransaction } from "@/lib/data-hooks";
 import { toast } from "sonner";
 
 interface RecurringTransactionFormProps {
@@ -23,10 +22,10 @@ export default function RecurringTransactionForm({
     endDate: "",
   });
 
-  const accounts = useQuery(api.accounts.list);
-  const categories = useQuery(api.categories.list);
-  const createRecurringTransaction = useMutation(api.recurringTransactions.create);
-  const updateRecurringTransaction = useMutation(api.recurringTransactions.update);
+  const accounts = useAccountsList();
+  const categories = useCategoriesList();
+  const createRecurringTransaction = useCreateRecurringTransaction();
+  const updateRecurringTransaction = useUpdateRecurringTransaction();
 
   useEffect(() => {
     if (recurringTransaction) {

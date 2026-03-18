@@ -2,9 +2,11 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useGuestAuth } from "@/features/auth/GuestAuthContext";
 
 export function SignInForm() {
   const { signIn } = useAuthActions();
+  const { loginAsGuest } = useGuestAuth();
   const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
   const [submitting, setSubmitting] = useState(false);
 
@@ -72,6 +74,16 @@ export function SignInForm() {
       <button className="auth-button" onClick={() => void signIn("anonymous")}>
         Sign in anonymously
       </button>
+      <button
+        type="button"
+        className="w-full mt-3 px-4 py-3 rounded-lg border-2 border-dashed border-gray-300 text-gray-600 font-semibold hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
+        onClick={loginAsGuest}
+      >
+        Continue as Guest
+      </button>
+      <p className="text-center text-xs text-gray-400 mt-2">
+        Guest mode uses demo data stored locally in your browser
+      </p>
     </div>
   );
 }

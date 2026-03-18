@@ -1,12 +1,11 @@
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useBudgetComparison } from "@/lib/data-hooks";
 
 interface BudgetProgressProps {
   period: string;
 }
 
 export default function BudgetProgress({ period }: BudgetProgressProps) {
-  const budgetComparison = useQuery(api.budgets.getBudgetComparison, { period });
+  const budgetComparison = useBudgetComparison({ period });
 
   if (budgetComparison === undefined) {
     return (

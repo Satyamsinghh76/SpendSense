@@ -1,8 +1,7 @@
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useTransactionsList } from "@/lib/data-hooks";
 
 export default function RecentTransactions() {
-  const transactions = useQuery(api.transactions.list, { limit: 5 });
+  const transactions = useTransactionsList({ limit: 5 });
 
   if (transactions === undefined) {
     return (

@@ -21,8 +21,10 @@
     "noUncheckedSideEffectImports": true,
 
     /* Import paths */
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@convex/*": ["./convex/_generated/*"]
     }
   },
   "include": ["src"]

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useAccountsList, useCategoriesList, useCreateTransaction, useUpdateTransaction, useInitializeUserData } from "@/lib/data-hooks";
 import { toast } from "sonner";
 
 interface TransactionFormProps {
@@ -21,11 +20,11 @@ export default function TransactionForm({ transaction, onClose }: TransactionFor
 
   const [tagInput, setTagInput] = useState("");
 
-  const accounts = useQuery(api.accounts.list);
-  const categories = useQuery(api.categories.list);
-  const createTransaction = useMutation(api.transactions.create);
-  const updateTransaction = useMutation(api.transactions.update);
-  const initializeUserData = useMutation(api.auth.initializeUserData);
+  const accounts = useAccountsList();
+  const categories = useCategoriesList();
+  const createTransaction = useCreateTransaction();
+  const updateTransaction = useUpdateTransaction();
+  const initializeUserData = useInitializeUserData();
 
   useEffect(() => {
     if (transaction) {
