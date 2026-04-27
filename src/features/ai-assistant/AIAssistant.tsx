@@ -62,7 +62,7 @@ export default function AIAssistant() {
       const response = await fetch(`${httpBaseUrl}/api/ai/chat`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "text/plain;charset=UTF-8",
         },
         body: JSON.stringify({
           message: input,

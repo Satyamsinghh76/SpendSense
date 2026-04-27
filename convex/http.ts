@@ -41,7 +41,8 @@ http.route({
   method: "POST",
   handler: httpAction(async (_ctx, request) => {
     try {
-      const body = await request.json();
+      const rawBody = await request.text();
+      const body = rawBody ? JSON.parse(rawBody) : {};
       const { message, conversationHistory } = body;
 
       if (!message || typeof message !== "string") {
