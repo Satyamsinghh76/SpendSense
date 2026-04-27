@@ -10,6 +10,7 @@ import TransactionList from "@/features/transactions/TransactionList";
 import BudgetSettings from "@/features/budgets/BudgetSettings";
 import AccountManager from "@/features/accounts/AccountManager";
 import RecurringTransactionList from "@/features/recurring/RecurringTransactionList";
+import { AIAssistant } from "@/features/ai-assistant";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -21,6 +22,7 @@ export default function App() {
     { key: "recurring", label: "Recurring" },
     { key: "budgets", label: "Budgets" },
     { key: "accounts", label: "Accounts" },
+    { key: "ai-assistant", label: "🤖 AI Assistant" },
   ];
 
   return (
@@ -145,6 +147,7 @@ function Content({ activeTab }: { activeTab: string }) {
           {activeTab === "recurring" && <RecurringTransactionList />}
           {activeTab === "budgets" && <BudgetSettings />}
           {activeTab === "accounts" && <AccountManager />}
+          {activeTab === "ai-assistant" && <AIAssistant />}
         </>
       ) : (
         <Unauthenticated>
