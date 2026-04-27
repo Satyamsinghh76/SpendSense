@@ -8,6 +8,33 @@ declare const process: {
 
 const http = httpRouter();
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      ...corsHeaders,
+    },
+  });
+}
+
+http.route({
+  path: "/api/ai/chat",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
+    });
+  }),
+});
+
 // AI chat endpoint
 http.route({
   path: "/api/ai/chat",
@@ -18,10 +45,7 @@ http.route({
       const { message, conversationHistory } = body;
 
       if (!message || typeof message !== "string") {
-        return new Response(
-          JSON.stringify({ error: "Invalid message format" }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
-        );
+        return jsonResponse({ error: "Invalid message format" }, 400);
       }
 
       const apiKey = process.env.GROQ_API_KEY;
@@ -73,17 +97,14 @@ http.route({
         data?.choices?.[0]?.message?.content ||
         "Unable to generate response. Please try again.";
 
-      return new Response(
-        JSON.stringify({ response: aiResponse, success: true }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ response: aiResponse, success: true });
     } catch (error) {
       console.error("AI chat error:", error);
-      return new Response(
-        JSON.stringify({
+      return jsonResponse(
+        {
           error: error instanceof Error ? error.message : "Internal server error",
-        }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        },
+        500
       );
     }
   }),
