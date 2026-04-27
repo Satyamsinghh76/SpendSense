@@ -8,7 +8,7 @@ auth.addHttpRoutes(http);
 
 // AI Chat endpoint
 http.route({
-  path: "/ai/chat",
+  path: "/api/ai/chat",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
