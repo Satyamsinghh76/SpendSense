@@ -2,11 +2,10 @@ import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { auth } from "./auth";
 
-// Create router and add auth routes
+// Create router
 const http = httpRouter();
-auth.addHttpRoutes(http);
 
-// Try adding a test HTTP route  
+// Add custom routes BEFORE auth routes
 http.route({
   path: "/api/test",
   method: "GET",
@@ -16,5 +15,8 @@ http.route({
     });
   }),
 });
+
+// Then add auth routes
+auth.addHttpRoutes(http);
 
 export default http;
