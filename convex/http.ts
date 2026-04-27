@@ -1,8 +1,6 @@
-import { httpRouter } from "convex/server";
+import http from "./router";
 import { httpAction } from "./_generated/server";
 import { auth } from "./auth";
-
-const http = httpRouter();
 
 // Add auth routes first
 auth.addHttpRoutes(http);
