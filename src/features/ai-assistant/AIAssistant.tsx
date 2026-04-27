@@ -50,8 +50,13 @@ export default function AIAssistant() {
     setError(null);
 
     try {
-      // Call backend API
-      const response = await fetch("/api/ai/chat", {
+      // Call backend API via Convex deployment URL
+      const convexUrl = import.meta.env.VITE_CONVEX_URL;
+      if (!convexUrl) {
+        throw new Error("VITE_CONVEX_URL environment variable not set");
+      }
+
+      const response = await fetch(`${convexUrl}/api/ai/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
