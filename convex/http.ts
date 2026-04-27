@@ -1,9 +1,10 @@
-import { auth } from "./auth";
-import router from "./router";
+import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
+import { auth } from "./auth";
 
-const http = router;
+const http = httpRouter();
 
+// Add auth routes first
 auth.addHttpRoutes(http);
 
 // AI Chat endpoint
