@@ -56,7 +56,10 @@ export default function AIAssistant() {
         throw new Error("VITE_CONVEX_URL environment variable not set");
       }
 
-      const response = await fetch(`${convexUrl}/api/ai/chat`, {
+      // Convex HTTP actions are served on convex.site, while client APIs use convex.cloud.
+      const httpBaseUrl = convexUrl.replace(".convex.cloud", ".convex.site");
+
+      const response = await fetch(`${httpBaseUrl}/api/ai/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
