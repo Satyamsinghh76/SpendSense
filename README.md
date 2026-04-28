@@ -18,7 +18,8 @@
 
 ## Overview
 
-Most budgeting tools are either too simple (a spreadsheet with extra steps) or too complex (enterprise ERP software crammed into a mobile screen). SpendSense sits in the middle — a full-featured, real-time personal finance platform that handles multi-account tracking, double-entry bookkeeping, automated recurring transactions, and budget analysis without requiring a finance degree to operate.
+
+Most budgeting tools are either too simple (a spreadsheet with extra steps) or too complex (enterprise ERP software crammed into a mobile screen). SpendSense sits in the middle — a full-featured, real-time personal finance platform that handles multi-account tracking, double-entry bookkeeping, automated recurring transactions, budget analysis, and now AI-powered financial insights — all without requiring a finance degree to operate.
 
 **Built for:** Individuals and freelancers managing multiple income streams, credit lines, savings goals, and monthly budgets across different accounts.
 
@@ -52,11 +53,19 @@ Most budgeting tools are either too simple (a spreadsheet with extra steps) or t
 - **Lifecycle Management** — Start dates, optional end dates, pause/resume controls
 - **Expiry Cleanup** — Daily cron deactivates expired recurring entries
 
+
 ### Dashboard & Analytics
 - **Net Worth Calculator** — Real-time total assets minus total liabilities
 - **Expense Breakdown** — Category-level spending distribution via interactive pie charts
 - **Daily Spending Trends** — Income vs. expense visualization over time
 - **Recent Activity Feed** — Quick-glance view of latest transactions
+
+### AI Finance Assistant (NEW)
+- **Conversational AI Chat** — Ask questions about your spending, budgets, and transactions in natural language
+- **Financial Data Summarization** — Automatically summarizes your total spending, category-wise breakdown, and recent transactions for the AI
+- **Predefined Quick Questions** — One-click questions like "Where am I overspending?", "Show my biggest expenses", and "Give savings advice" auto-fill and send to the assistant
+- **Markdown-Formatted Responses** — AI replies are formatted for readability, with numbers and insights highlighted
+- **Timestamps & Scrollable Chat** — Every message is timestamped and the chat container is scrollable for easy review
 
 ### Receipt Management
 - **Image Upload** — Attach receipt photos to transactions via Convex file storage
@@ -330,10 +339,12 @@ SpendSense/
 │   │   ├── transactions/          #     Transaction list + form
 │   │   ├── accounts/              #     Account manager
 │   │   ├── budgets/               #     Budget settings + progress
-│   │   └── recurring/             #     Recurring transaction management
+│   │   ├── recurring/             #     Recurring transaction management
+│   │   └── ai-assistant/          #     AI chat UI and logic (NEW)
 │   └── lib/                       #   Shared utilities
 │       ├── data-hooks.ts          #     22 guest-aware hooks (query + mutation)
-│       └── guest-store.ts         #     localStorage store with reactive updates
+│       ├── guest-store.ts         #     localStorage store with reactive updates
+│       └── ai-financial-context.ts #     Summarizes financial data for LLMs (NEW)
 │
 ├── vercel.json                    # Deployment config
 ├── vite.config.ts                 # Build config + path aliases
