@@ -43,7 +43,7 @@ http.route({
     try {
       const rawBody = await request.text();
       const body = rawBody ? JSON.parse(rawBody) : {};
-      const { message, conversationHistory } = body;
+      const { message, conversationHistory, financialContext } = body;
 
       if (!message || typeof message !== "string") {
         return jsonResponse({ error: "Invalid message format" }, 400);
@@ -79,6 +79,13 @@ http.route({
               role: "system",
               content:
                 "You are SpendSense AI, a personal finance assistant. Give concise, actionable budgeting and spending advice.",
+            },
+            {
+              role: "system",
+              content:
+                typeof financialContext === "string" && financialContext.trim()
+                  ? `Use this financial context when answering:\n${financialContext}`
+                  : "No financial context provided.",
             },
             ...history,
             { role: "user", content: message },

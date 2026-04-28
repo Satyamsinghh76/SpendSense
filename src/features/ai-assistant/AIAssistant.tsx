@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Loader, Send, Trash2 } from "lucide-react";
+import { useBudgetsList, useCategoriesList, useTransactionsList } from "@/lib/data-hooks";
+import { buildFinancialContextText } from "@/lib/ai-financial-context";
 
 interface Message {
   id: string;
@@ -9,6 +11,10 @@ interface Message {
 }
 
 export default function AIAssistant() {
+  const currentPeriod = `${new Date().getFullYear()}-${String(
+    new Date().getMonth() + 1
+  ).padStart(2, "0")}`;
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -21,6 +27,15 @@ export default function AIAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const transactions = useTransactionsList({ limit: 100 });
+  const budgets = useBudgetsList({ period: currentPeriod });
+  const categories = useCategoriesList();
+
+  const quickQuestions = [
+    "Where am I overspending?",
+    "Show my biggest expenses",
+    "Give savings advice",
+  ];
 
   // Auto-scroll to latest message
   const scrollToBottom = () => {
@@ -31,16 +46,55 @@ export default function AIAssistant() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const renderFormattedContent = (content: string) => {
+    const highlightNumbers = (line: string) =>
+      line.split(/(\$?\d+(?:,\d{3})*(?:\.\d+)?%?)/g).map((part, idx) => {
+        if (!part) return null;
+        if (/^\$?\d+(?:,\d{3})*(?:\.\d+)?%?$/.test(part)) {
+          return (
+            <span key={idx} className="font-semibold text-emerald-600">
+              {part}
+            </span>
+          );
+        }
+        return <React.Fragment key={idx}>{part}</React.Fragment>;
+      });
 
-    if (!input.trim()) return;
+    return content.split("\n").map((line, idx) => {
+      const trimmed = line.trim();
+      const isHeading = /^#{1,3}\s/.test(trimmed) || /^\*\*.*\*\*:?$/.test(trimmed);
+      const isBullet = /^[-*]\s/.test(trimmed);
+      const cleanLine = trimmed
+        .replace(/^#{1,3}\s/, "")
+        .replace(/^[-*]\s/, "")
+        .replace(/^\*\*(.*)\*\*:?$/, "$1");
+
+      if (!trimmed) {
+        return <div key={idx} className="h-2" />;
+      }
+
+      return (
+        <p
+          key={idx}
+          className={`text-sm whitespace-pre-wrap break-words ${
+            isHeading ? "font-semibold text-slate-900" : "text-slate-800"
+          }`}
+        >
+          {isBullet ? "• " : ""}
+          {highlightNumbers(cleanLine)}
+        </p>
+      );
+    });
+  };
+
+  const sendMessage = async (messageText: string) => {
+    if (!messageText.trim()) return;
 
     // Add user message to chat
     const userMessage: Message = {
       id: Date.now().toString(),
       type: "user",
-      content: input,
+      content: messageText,
       timestamp: new Date(),
     };
 
@@ -59,17 +113,24 @@ export default function AIAssistant() {
       // Convex HTTP actions are served on convex.site, while client APIs use convex.cloud.
       const httpBaseUrl = convexUrl.replace(".convex.cloud", ".convex.site");
 
+      const financialContext = buildFinancialContextText(
+        (transactions || []) as any,
+        (budgets || []) as any,
+        (categories || []) as any
+      );
+
       const response = await fetch(`${httpBaseUrl}/api/ai/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "text/plain;charset=UTF-8",
         },
         body: JSON.stringify({
-          message: input,
+          message: messageText,
           conversationHistory: messages.map((msg) => ({
             role: msg.type === "user" ? "user" : "assistant",
             content: msg.content,
           })),
+          financialContext,
         }),
       });
 
@@ -98,6 +159,16 @@ export default function AIAssistant() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendMessage(input);
+  };
+
+  const handleQuickQuestion = async (question: string) => {
+    setInput(question);
+    await sendMessage(question);
   };
 
   const handleClearChat = () => {
@@ -141,7 +212,7 @@ export default function AIAssistant() {
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="max-w-4xl mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-4">
           {messages.map((message) => (
             <div
@@ -157,9 +228,13 @@ export default function AIAssistant() {
                     : "bg-white text-slate-900 border border-slate-200 rounded-bl-none shadow-sm"
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap break-words">
-                  {message.content}
-                </p>
+                <div className="space-y-1">
+                  {message.type === "ai" ? renderFormattedContent(message.content) : (
+                    <p className="text-sm whitespace-pre-wrap break-words">
+                      {message.content}
+                    </p>
+                  )}
+                </div>
                 <p
                   className={`text-xs mt-1 ${
                     message.type === "user"
@@ -204,6 +279,20 @@ export default function AIAssistant() {
       {/* Input Form */}
       <div className="bg-white border-t border-slate-200 shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap gap-2 mb-3">
+            {quickQuestions.map((question) => (
+              <button
+                key={question}
+                type="button"
+                onClick={() => handleQuickQuestion(question)}
+                disabled={isLoading}
+                className="px-3 py-1.5 text-xs font-medium rounded-full border border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+
           <form onSubmit={handleSendMessage} className="flex gap-3">
             <input
               type="text"
