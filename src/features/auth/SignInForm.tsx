@@ -31,22 +31,26 @@ export function SignInForm() {
           formData.set("email", identity);
           formData.delete("identity");
           formData.set("flow", flow);
-          void signIn("password", formData).catch((error) => {
-            const message = error instanceof Error ? error.message : String(error);
-            if (message.includes("Invalid password")) {
-              toast.error("Password must be at least 8 characters and not empty.");
-              return;
-            }
-            if (message.includes("already exists")) {
-              toast.error("That account already exists. Use the existing account button instead.");
-              return;
-            }
-            toast.error(
-              flow === "signIn"
-                ? `Could not sign in: ${message}`
-                : `Could not create account: ${message}`,
-            );
-          });
+          void signIn("password", formData)
+            .then(() => {
+              window.location.replace("/");
+            })
+            .catch((error) => {
+              const message = error instanceof Error ? error.message : String(error);
+              if (message.includes("Invalid password")) {
+                toast.error("Password must be at least 8 characters and not empty.");
+                return;
+              }
+              if (message.includes("already exists")) {
+                toast.error("That account already exists. Use the existing account button instead.");
+                return;
+              }
+              toast.error(
+                flow === "signIn"
+                  ? `Could not sign in: ${message}`
+                  : `Could not create account: ${message}`,
+              );
+            });
         }}
       >
         <input
