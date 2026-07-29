@@ -111,6 +111,16 @@ function Content({ activeTab }: { activeTab: string }) {
     }
   }, [loggedInUser, initializeUserData, isGuest]);
 
+  useEffect(() => {
+    if (isGuest || !loggedInUser) {
+      return;
+    }
+
+    if (window.location.pathname !== "/dashboard") {
+      window.history.replaceState({}, "", "/dashboard");
+    }
+  }, [isGuest, loggedInUser]);
+
   // Loading state — only for real auth, guests load instantly
   if (!isGuest && loggedInUser === undefined) {
     return (

@@ -14,7 +14,7 @@ export function SignInForm() {
           type="button"
           className="auth-button flex items-center justify-center gap-2"
           onClick={() => {
-            void signIn("google", { redirectTo: "/" }).catch((error) => {
+            void signIn("google", { redirectTo: "/dashboard" }).catch((error) => {
               const message = error instanceof Error ? error.message : String(error);
               toast.error(`Could not sign in with Google: ${message}`);
             });
