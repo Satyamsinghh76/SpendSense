@@ -73,8 +73,7 @@ Most budgeting tools are either too simple (a spreadsheet with extra steps) or t
 - **Structured Data Extraction** — Parses merchant name, amount, date, and line items
 
 ### Authentication & Guest Mode
-- **Email/Password Auth** — Secure signup and login via `@convex-dev/auth`
-- **Anonymous Sign-In** — Quick access without creating an account
+- **Google OAuth** — Secure signup and login via `@convex-dev/auth` with Google Provider
 - **Guest Mode** — Full UI access with localStorage-backed demo data, zero backend calls
 - **Seamless Transition** — Guest data and real user data coexist without conflicts
 
@@ -88,7 +87,7 @@ Most budgeting tools are either too simple (a spreadsheet with extra steps) or t
 | **Styling** | Tailwind CSS 3 | Utility-first responsive design |
 | **Build Tool** | Vite 6 | Fast HMR and optimized production builds |
 | **Backend** | Convex | Real-time serverless functions and database |
-| **Auth** | @convex-dev/auth (Password + Anonymous) | JWT-based authentication with RSA signing |
+| **Auth** | @convex-dev/auth (Google OAuth) | JWT-based authentication with RSA signing |
 | **Charts** | Recharts 3 | Interactive data visualization |
 | **Notifications** | Sonner | Toast notifications |
 | **Deployment** | Vercel (frontend) + Convex Cloud (backend) | Global CDN + distributed serverless |
@@ -135,8 +134,7 @@ Most budgeting tools are either too simple (a spreadsheet with extra steps) or t
 │  └── Auth tables (users, sessions, accounts, etc.)          │
 │                                                             │
 │  Auth (RSA-signed JWTs)                                     │
-│  ├── Password provider (email/password)                     │
-│  ├── Anonymous provider                                     │
+│  ├── Google OAuth provider                                  │
 │  └── HTTP routes auto-registered via auth.addHttpRoutes()   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -218,8 +216,8 @@ node ./node_modules/convex/bin/main.js env set JWT_PRIVATE_KEY -- "$(cat .tmp_ke
 node ./node_modules/convex/bin/main.js env set JWKS -- "$(cat .tmp_jwks.json)"
 node ./node_modules/convex/bin/main.js env set AUTH_SECRET -- "$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")"
 node ./node_modules/convex/bin/main.js env set SITE_URL -- "http://localhost:5173"
-
-# Clean up temp files
+node ./node_modules/convex/bin/main.js env set AUTH_GOOGLE_ID -- "your-google-client-id"
+node ./node_modules/convex/bin/main.js env set AUTH_GOOGLE_SECRET -- "your-google-client-secret"
 rm .tmp_key.pem .tmp_jwks.json
 ```
 
@@ -243,6 +241,9 @@ All environment variables are stored on the **Convex deployment**, not in `.env`
 | `JWKS` | JSON Web Key Set (public key) for token verification | Convex deployment |
 | `AUTH_SECRET` | 256-bit hex string for session encryption | Convex deployment |
 | `SITE_URL` | Frontend URL (used for auth redirects) | Convex deployment |
+| `CONVEX_SITE_URL` | Convex HTTP endpoint (auto-set/used as issuer) | Convex deployment |
+| `AUTH_GOOGLE_ID` | Google OAuth Client ID | Convex deployment |
+| `AUTH_GOOGLE_SECRET`| Google OAuth Client Secret | Convex deployment |
 | `VITE_CONVEX_URL` | Convex deployment URL (auto-set) | `.env.local` |
 | `CONVEX_DEPLOYMENT` | Deployment identifier (auto-set) | `.env.local` |
 
@@ -289,11 +290,11 @@ node ./node_modules/convex/bin/main.js env set SITE_URL -- "https://your-app.ver
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │  SignInForm  │────►│  @convex-dev/auth │────►│  Convex Database │
 │             │     │  (server-side)    │     │  (users table)   │
-│  Email +    │     │                  │     │                  │
-│  Password   │     │  1. Hash password│     │  Store user +    │
-│     OR      │     │  2. Create session│    │  session         │
-│  Anonymous  │     │  3. Sign JWT     │     │                  │
-│     OR      │     │     (RS256)      │     │                  │
+│  Google     │     │                  │     │                  │
+│  OAuth      │     │  1. OAuth flow   │     │  Store user +    │
+│  Login      │     │  2. Create session│    │  session         │
+│             │     │  3. Sign JWT     │     │                  │
+│             │     │     (RS256)      │     │                  │
 │  Guest Mode │     └──────────────────┘     └─────────────────┘
 └─────────────┘
        │
@@ -307,11 +308,10 @@ node ./node_modules/convex/bin/main.js env set SITE_URL -- "https://your-app.ver
 └─────────────────┘
 ```
 
-- **Password auth:** Email/password → server-side hashing → JWT issued → stored in HTTP-only session
-- **Anonymous auth:** One-click → temporary account created → full access
+- **Google OAuth:** Login via Google → Convex handles callback → JWT issued → stored in HTTP-only session
 - **Guest mode:** Client-side only → pre-populated demo data → localStorage CRUD → zero network calls
 
-All three modes use the same UI components. The `data-hooks.ts` layer transparently routes queries to either Convex or the local guest store.
+Both modes use the same UI components. The `data-hooks.ts` layer transparently routes queries to either Convex or the local guest store.
 
 ---
 
