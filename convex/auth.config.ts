@@ -1,7 +1,12 @@
+const siteUrl =
+  process.env.SITE_URL ??
+  process.env.CONVEX_SITE_URL ??
+  "http://localhost:5173";
+
 export default {
   providers: [
     {
-      domain: process.env.CONVEX_SITE_URL,
+      domain: siteUrl,
       applicationID: "convex",
     },
   ],
