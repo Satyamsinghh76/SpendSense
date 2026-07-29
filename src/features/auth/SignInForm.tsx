@@ -2,6 +2,15 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { toast } from "sonner";
 
+const PRIVATE_EMAIL_DOMAIN = "spendsense.local";
+
+function normalizeIdentity(rawValue: FormDataEntryValue | null) {
+  const value = typeof rawValue === "string" ? rawValue.trim() : "";
+  if (!value) return "";
+  if (value.includes("@")) return value.toLowerCase();
+  return `${value.toLowerCase()}@${PRIVATE_EMAIL_DOMAIN}`;
+}
+
 export function SignInForm() {
   const { signIn } = useAuthActions();
 
@@ -14,27 +23,38 @@ export function SignInForm() {
           const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
           const flow = submitter?.value === "signUp" ? "signUp" : "signIn";
           const formData = new FormData(e.target as HTMLFormElement);
+          const identity = normalizeIdentity(formData.get("identity"));
+          if (!identity) {
+            toast.error("Enter a username or email address.");
+            return;
+          }
+          formData.set("email", identity);
+          formData.delete("identity");
           formData.set("flow", flow);
           void signIn("password", formData).catch((error) => {
-            let toastTitle = "";
-            if (error.message.includes("Invalid password")) {
-              toastTitle = "Invalid password. Please try again.";
-            } else {
-              toastTitle =
-                flow === "signIn"
-                  ? "Could not sign in. Check your email and password."
-                  : "Could not create account. Try a different email or password.";
+            const message = error instanceof Error ? error.message : String(error);
+            if (message.includes("Invalid password")) {
+              toast.error("Password must be at least 8 characters and not empty.");
+              return;
             }
-            toast.error(toastTitle);
+            if (message.includes("already exists")) {
+              toast.error("That account already exists. Use the existing account button instead.");
+              return;
+            }
+            toast.error(
+              flow === "signIn"
+                ? `Could not sign in: ${message}`
+                : `Could not create account: ${message}`,
+            );
           });
         }}
       >
         <input
           className="auth-input-field"
-          type="email"
-          name="email"
-          placeholder="Email"
-          autoComplete="email"
+          type="text"
+          name="identity"
+          placeholder="Username or email"
+          autoComplete="username"
           required
         />
         <input
@@ -56,11 +76,11 @@ export function SignInForm() {
           Already have an account? Sign in
         </button>
         <p className="text-center text-xs text-gray-500">
-          Email and password only. No verification codes or guest step.
+          Use a username or email with your password. No verification codes or guest step.
         </p>
       </form>
       <p className="text-center text-sm text-secondary mt-4">
-        Use the same email and password each time to return to your account.
+        Use the same username or email and password each time to return to your account.
       </p>
     </div>
   );
