@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Loader, Send, Trash2 } from "lucide-react";
 import { useBudgetsList, useCategoriesList, useTransactionsList } from "@/lib/data-hooks";
 import { buildFinancialContextText } from "@/lib/ai-financial-context";
+import { getConvexUrl } from "@/lib/convex-url";
 
 interface Message {
   id: string;
@@ -105,12 +106,7 @@ export default function AIAssistant() {
 
     try {
       // Call backend API via Convex deployment URL
-      const convexUrl = import.meta.env.VITE_CONVEX_URL;
-      if (!convexUrl) {
-        throw new Error("VITE_CONVEX_URL environment variable not set");
-      }
-
-      // Convex HTTP actions are served on convex.site, while client APIs use convex.cloud.
+      const convexUrl = getConvexUrl();
       const httpBaseUrl = convexUrl.replace(".convex.cloud", ".convex.site");
 
       const financialContext = buildFinancialContextText(
