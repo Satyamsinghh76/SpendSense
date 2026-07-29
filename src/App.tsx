@@ -1,4 +1,4 @@
-import { Unauthenticated } from "convex/react";
+import { Unauthenticated, useConvexAuth } from "convex/react";
 import { SignInForm } from "@/features/auth/SignInForm";
 import { SignOutButton } from "@/features/auth/SignOutButton";
 import { AuthGate, useGuestAuth } from "@/features/auth/GuestAuthContext";
@@ -99,6 +99,7 @@ export default function App() {
 
 function Content({ activeTab }: { activeTab: string }) {
   const { isGuest } = useGuestAuth();
+  const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth();
   const loggedInUser = useLoggedInUser();
   const initializeUserData = useInitializeUserData();
   const hasInitialized = useRef(false);
@@ -111,26 +112,41 @@ function Content({ activeTab }: { activeTab: string }) {
     }
   }, [loggedInUser, initializeUserData, isGuest]);
 
+  // Clean up URL after OAuth redirect — path may be /?code=... or /dashboard
   useEffect(() => {
-    if (isGuest || !loggedInUser) {
+    if (isGuest || !isAuthenticated) {
       return;
     }
-
-    if (window.location.pathname !== "/dashboard") {
-      window.history.replaceState({}, "", "/dashboard");
+    // Remove OAuth query params from URL and normalize to root
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("code") || url.searchParams.has("state")) {
+      url.searchParams.delete("code");
+      url.searchParams.delete("state");
+      window.history.replaceState({}, "", url.pathname || "/");
     }
-  }, [isGuest, loggedInUser]);
+  }, [isAuthenticated, isGuest]);
 
-  // Loading state — only for real auth, guests load instantly
-  if (!isGuest && loggedInUser === undefined) {
+  // Show spinner while Convex is resolving auth (e.g., after Google OAuth redirect)
+  if (!isGuest && isAuthLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex flex-col justify-center items-center min-h-[400px] gap-4">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-100 border-t-blue-600"></div>
+        <p className="text-gray-500 text-sm">Signing you in…</p>
       </div>
     );
   }
 
-  const isLoggedIn = isGuest || !!loggedInUser;
+  // While subscriptions resolve after auth is confirmed
+  if (!isGuest && isAuthenticated && loggedInUser === undefined) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-[400px] gap-4">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-100 border-t-blue-600"></div>
+        <p className="text-gray-500 text-sm">Loading your dashboard…</p>
+      </div>
+    );
+  }
+
+  const isLoggedIn = isGuest || isAuthenticated;
   const displayName = isGuest
     ? "Guest"
     : (loggedInUser as any)?.name || (loggedInUser as any)?.email?.split("@")[0] || "friend";
@@ -160,38 +176,36 @@ function Content({ activeTab }: { activeTab: string }) {
           {activeTab === "ai-assistant" && <AIAssistant />}
         </>
       ) : (
-        <Unauthenticated>
-          <div className="flex flex-col items-center justify-center min-h-[500px] gap-8">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                Take Control of Your Finances
-              </h1>
-              <p className="text-xl text-gray-600 mb-8 max-w-2xl">
-                Track expenses, manage budgets, and achieve your financial goals with our comprehensive expense management platform.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                  <div className="text-3xl mb-3">📊</div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Smart Analytics</h3>
-                  <p className="text-gray-600 text-sm">Visual dashboards and insights into your spending patterns</p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                  <div className="text-3xl mb-3">🏦</div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Multiple Accounts</h3>
-                  <p className="text-gray-600 text-sm">Manage cash, credit, savings, and loan accounts in one place</p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                  <div className="text-3xl mb-3">🎯</div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Budget Goals</h3>
-                  <p className="text-gray-600 text-sm">Set monthly budgets and track your progress</p>
-                </div>
+        <div className="flex flex-col items-center justify-center min-h-[500px] gap-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              Take Control of Your Finances
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl">
+              Track expenses, manage budgets, and achieve your financial goals with our comprehensive expense management platform.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white p-6 rounded-lg shadow-sm border">
+                <div className="text-3xl mb-3">📊</div>
+                <h3 className="font-semibold text-gray-900 mb-2">Smart Analytics</h3>
+                <p className="text-gray-600 text-sm">Visual dashboards and insights into your spending patterns</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm border">
+                <div className="text-3xl mb-3">🏦</div>
+                <h3 className="font-semibold text-gray-900 mb-2">Multiple Accounts</h3>
+                <p className="text-gray-600 text-sm">Manage cash, credit, savings, and loan accounts in one place</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm border">
+                <div className="text-3xl mb-3">🎯</div>
+                <h3 className="font-semibold text-gray-900 mb-2">Budget Goals</h3>
+                <p className="text-gray-600 text-sm">Set monthly budgets and track your progress</p>
               </div>
             </div>
-            <div className="w-full max-w-md">
-              <SignInForm />
-            </div>
           </div>
-        </Unauthenticated>
+          <div className="w-full max-w-md">
+            <SignInForm />
+          </div>
+        </div>
       )}
     </div>
   );
